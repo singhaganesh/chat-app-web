@@ -16,7 +16,7 @@ public class RoomService {
 
 
     public Room createRoom(String roomId) {
-        if (roomRepository.findByRoomId(roomId) != null){
+        if (roomRepository.findByRoomId(roomId).isPresent()){
             // room is already there
             throw new APIException("Room already exists!");
         }
@@ -29,18 +29,12 @@ public class RoomService {
     }
 
     public Room getRoom(String roomId) {
-        Room room = roomRepository.findByRoomId(roomId);
-        if (room == null){
-            throw new APIException("Room not found!!");
-        }
-        return room;
+        return roomRepository.findByRoomId(roomId)
+                .orElseThrow(() -> new APIException("Room not found!!"));
     }
 
     public List<Message> getMessage(String roomId) {
-        Room room = roomRepository.findByRoomId(roomId);
-        if (room == null){
-            throw new APIException("Room not exists!");
-        }
+        Room room = getRoom(roomId);
         // get messages :
         return room.getMessages();
     }
