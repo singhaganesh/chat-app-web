@@ -1,14 +1,15 @@
-# Use a base image with JDK
-FROM openjdk:21-jdk-slim
-
-# Set the working directory
+# Stage 1: Build the application
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
+COPY pom.xml .
+# Download dependencies first (cached layer)
+RUN mvn dependency:go-offline -B
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Copy the built jar (replace with your jar name)
-COPY target/chat-app-backend-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose the port your app runs on
+# Stage 2: Run the application
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/chat-app-backend-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
